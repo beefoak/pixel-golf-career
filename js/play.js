@@ -63,6 +63,7 @@
     advance();
   };
   P.stop = function () { S = null; meter.disarm(); };
+  P.debugState = function () { return S; };
 
   function log(msg) {
     S.logLines.unshift(msg); S.logLines = S.logLines.slice(0, 40);
@@ -107,7 +108,7 @@
     S.ball = { x: hc.hole.tee.x, y: hc.hole.tee.y };
     S.strokes = 0; S.lost = 0; S.trees = 0; S.shape = 0;
     S.cam.x = S.ball.x; S.cam.y = S.ball.y - 100;
-    S.flyover = 1.6;
+    S.flyover = 1.6; S.baseZoom = 1;
     var title = playoff ? 'PLAYOFF — Hole 18' : 'Round ' + (t.round + 1) + ' — Hole ' + (h + 1);
     PG.UI.toast(title + '<br><small>Par ' + hc.hole.par + ' · ' + hc.hole.len + ' yds</small>', 1600);
     prepareShot();
@@ -389,22 +390,28 @@
     meter.update(dt);
     if (S.anim) animStep(dt);
     // camera
-    var ballP = S.ballDraw || S.ball, target, zoom = 1;
-    if (S.phase === 'aim' || S.phase === 'done') {
-      if (S.club === 'PT' || (S.dist < 40 && S.phase === 'aim')) {
+    // S.baseZoom is a stable framing zoom set while aiming; it is never derived from the
+    // live camera zoom, so the wheel bias can't compound frame over frame.
+    var ballP = S.ballDraw || S.ball, target;
+    if (S.phase === 'aim') {
+      if (S.club === 'PT' || S.dist < 40) {
         target = { x: (S.ball.x + S.pin.x) / 2, y: (S.ball.y + S.pin.y) / 2 };
-        zoom = PG.clamp(260 / (Math.max(S.dist, 8) * PG.PPY * 1.6), 1.5, 4);
+        S.baseZoom = PG.clamp(view.height * 0.5 / (Math.max(S.dist, 5) * PG.PPY), 1.5, 4);
       } else {
         var l = S.preview && S.preview.land ? S.preview.land : S.aim;
         target = { x: S.ball.x + (l.x - S.ball.x) * 0.5, y: S.ball.y + (l.y - S.ball.y) * 0.5 };
         var span = PG.dist(S.ball.x, S.ball.y, l.x, l.y);
-        zoom = PG.clamp(view.height / (span * PG.PPY * 1.35), 0.75, 2);
+        S.baseZoom = PG.clamp(view.height / (span * PG.PPY * 1.35), 0.75, 2);
       }
-    } else { target = { x: ballP.x, y: ballP.y }; zoom = S.shot && S.shot.putt ? S.cam.zoom : Math.max(0.9, Math.min(S.cam.zoom, 1.4)); }
-    zoom *= S.zoomBias;
+    } else {
+      target = { x: ballP.x, y: ballP.y };
+      // long shots in flight ease out a little; putts and short chips keep their framing
+      if (S.phase === 'anim' && S.shot && !S.shot.putt && S.shot.carry > 60) S.baseZoom = Math.min(S.baseZoom || 1, 1.3);
+    }
+    var zoom = PG.clamp((S.baseZoom || 1) * S.zoomBias, 0.5, 6);
     var k = S.phase === 'anim' ? 0.12 : 0.08;
     if (S.flyover > 0) { S.flyover -= dt; k = 0.03; }
-    S.cam.x += (target.x - S.cam.x) * k; S.cam.y += (target.y - S.cam.y) * k; S.cam.zoom += (zoom - S.cam.zoom) * 0.1;
+    S.cam.x += (target.x - S.cam.x) * k; S.cam.y += (target.y - S.cam.y) * k; S.cam.zoom *= Math.pow(zoom / S.cam.zoom, Math.min(1, dt * 2.2)); // smooth, frame-rate independent, log-space
     var showSlope = S.club === 'PT' || PG.dist(ballP.x, ballP.y, S.pin.x, S.pin.y) < 45;
     PG.Render.drawView(vctx, S.hole, S.cam, {
       pin: S.pin, ball: ballP, preview: S.phase === 'aim' ? S.preview : null, time: S.time, showSlope: showSlope, trail: S.trail
