@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Golf Career</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- TITLE -->
+  <section id="scr-title" class="scr">
+    <div class="title-wrap">
+      <canvas id="titleArt" width="320" height="120"></canvas>
+      <h1>PIXEL GOLF<br><span>CAREER</span></h1>
+      <p class="tag">From the county amateur circuit to the World Tour.</p>
+      <div class="menu" id="titleMenu"></div>
+    </div>
+  </section>
+
+  <!-- CREATE -->
+  <section id="scr-create" class="scr">
+    <div class="panel narrow">
+      <h2>Create your golfer</h2>
+      <label>Name <input id="cName" maxlength="20" value="Player One"></label>
+      <p class="dim">All attributes start at 25. Distribute <b id="cLeft">20</b> bonus points (max +15 each).</p>
+      <div id="cAlloc"></div>
+      <div class="btns"><button id="cBack">Back</button><button id="cGo" class="pri">Tee it up</button></div>
+    </div>
+  </section>
+
+  <!-- HUB -->
+  <section id="scr-hub" class="scr">
+    <header id="hubTop"></header>
+    <nav id="hubTabs"></nav>
+    <main id="hubBody"></main>
+  </section>
+
+  <!-- PLAY -->
+  <section id="scr-play" class="scr">
+    <div class="play-grid">
+      <div class="play-main">
+        <div class="view-wrap">
+          <canvas id="view" width="800" height="520"></canvas>
+          <div id="toast"></div>
+          <button class="quit" data-pact="quit" title="Back to hub">✕</button>
+        </div>
+        <canvas id="meter" width="800" height="62"></canvas>
+        <div class="keys dim">Click course/minimap: aim · A/D rotate (Shift = big) · W/S club · Z/X/C draw/straight/fade · Q/E putt scale · Wheel zoom · SPACE swing</div>
+      </div>
+      <aside class="play-side">
+        <div id="pHole" class="box"></div>
+        <canvas id="mini" width="230" height="200"></canvas>
+        <div id="pShot" class="box"></div>
+        <div id="pLB" class="box lb"></div>
+        <div id="pLog" class="box log"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- SIM -->
+  <section id="scr-sim" class="scr">
+    <div class="panel wide" id="simBody"></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="scr-results" class="scr">
+    <div class="panel wide" id="resBody"></div>
+  </section>
+
+  <div id="modalBg"><div id="modal"></div></div>
+  <div id="tip"></div>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/course.js"></script>
+<script src="js/golfer.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/items.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/career.js"></script>
+<script src="js/render.js"></script>
+<script src="js/meter.js"></script>
+<script src="js/play.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
